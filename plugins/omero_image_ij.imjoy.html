@@ -18,15 +18,49 @@
 }
 </config>
 <script lang="javascript">
+
+// read the file and return as a base64 string
+const readImageFile = (file)=>{
+    return new Promise((resolve, reject)=>{
+        const U = window.URL || window.webkitURL;
+        // this works for safari
+        if(U.createObjectURL){
+            resolve(U.createObjectURL(file))
+        }
+        // fallback
+        else{
+            const fr = new FileReader();
+            // when image is loaded, set the src of the image where you want to display it
+            fr.onload = function(e) {
+                resolve(e.target.result)
+            };
+            fr.onerror = reject
+            // fill fr with image data
+            fr.readAsDataURL(file);
+        }
+    })
+}
+
+
 class ImJoyPlugin{
     async setup(){
         await api.log("omero_image_ij plugin initialized")
     }
+    getUrlParameter(name){
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+        var results = regex.exec(location.search);
+        return results === null
+            ? ""
+            : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
     async openImageJ(){
         const ij = await api.createWindow({src:"https://ij.imjoy.io"});
         // TODO load this image...
-        const image = "http://idr.openmicroscopy.org/webgateway/render_image/96765/0/0/";
-        ij.viewImage(image);
+        //const open = "http://idr.openmicroscopy.org/webgateway/render_image/96765/0/0/";
+        const open_image = getUrlParameter("open")
+        const img_data = readImageFile(open_image)
+        ij.viewImage(img_data);
     }
     async run(ctx){
         await this.openImageJ()
