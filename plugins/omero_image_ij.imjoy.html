@@ -1,7 +1,7 @@
 <config lang="json">
 {
   "name": "OMERO ImageJ.JS",
-  "type": "web-worker",
+  "type": "window",
   "tags": [],
   "ui": "",
   "version": "0.1.0",
@@ -19,53 +19,20 @@
 </config>
 <script lang="javascript">
 
-// read the file and return as a base64 string
-const readImageFile = (file)=>{
-    return new Promise((resolve, reject)=>{
-        const U = window.URL || window.webkitURL;
-        // this works for safari
-        if(U.createObjectURL){
-            resolve(U.createObjectURL(file))
-        }
-        // fallback
-        else{
-            const fr = new FileReader();
-            // when image is loaded, set the src of the image where you want to display it
-            fr.onload = function(e) {
-                resolve(e.target.result)
-            };
-            fr.onerror = reject
-            // fill fr with image data
-            fr.readAsDataURL(file);
-        }
-    })
-}
-
-getUrlParameter(name){
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-    var results = regex.exec(location.search);
-    return results === null
-        ? ""
-        : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
-
 class ImJoyPlugin{
     async setup(){
         await api.log("omero_image_ij plugin initialized")
     }
-    async openImageJ(){
+    async openImageJ(buffer){
+
+        console.log('opening https://ij.imjoy.io....')
         const ij = await api.createWindow({src:"https://ij.imjoy.io"});
-        // TODO load this image...
-        //const open = "http://idr.openmicroscopy.org/webgateway/render_image/96765/0/0/";
-        const open_image = getUrlParameter("open")
-        console.log('open_image', open_image)
-        const img_data = readImageFile(open_image)
-        ij.viewImage(img_data);
+
+        console.log("VIEW IMAGE...", buffer);
+        ij.viewImage(buffer);
     }
     async run(ctx){
-        await this.openImageJ()
+        // await this.openImageJ()
     }
 }
 api.export(new ImJoyPlugin())
