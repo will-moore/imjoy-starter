@@ -41,24 +41,26 @@ const readImageFile = (file)=>{
     })
 }
 
+getUrlParameter(name){
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+    var results = regex.exec(location.search);
+    return results === null
+        ? ""
+        : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 
 class ImJoyPlugin{
     async setup(){
         await api.log("omero_image_ij plugin initialized")
-    }
-    getUrlParameter(name){
-        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-        var results = regex.exec(location.search);
-        return results === null
-            ? ""
-            : decodeURIComponent(results[1].replace(/\+/g, " "));
     }
     async openImageJ(){
         const ij = await api.createWindow({src:"https://ij.imjoy.io"});
         // TODO load this image...
         //const open = "http://idr.openmicroscopy.org/webgateway/render_image/96765/0/0/";
         const open_image = getUrlParameter("open")
+        console.log('open_image', open_image)
         const img_data = readImageFile(open_image)
         ij.viewImage(img_data);
     }
